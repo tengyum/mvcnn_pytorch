@@ -1,0 +1,7 @@
+# PyCharm Project Folder
+.idea/
+# Log Folder
+MVCNN*/
+# Compiling Folder
+__pycache__/
+*/__pycache__/

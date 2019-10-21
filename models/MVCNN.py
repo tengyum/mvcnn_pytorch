@@ -7,8 +7,8 @@ from torch.autograd import Variable
 import torchvision.models as models
 from .Model import Model
 
-mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
-std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
+# mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
+# std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
 
 def flip(x, dim):
     xsize = x.size()
@@ -34,8 +34,8 @@ class SVCNN(Model):
         self.pretraining = pretraining
         self.cnn_name = cnn_name
         self.use_resnet = cnn_name.startswith('resnet')
-        self.mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
-        self.std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
+        # self.mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
+        # self.std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
 
         if self.use_resnet:
             if self.cnn_name == 'resnet18':
@@ -57,15 +57,23 @@ class SVCNN(Model):
             elif self.cnn_name == 'vgg16':
                 self.net_1 = models.vgg16(pretrained=self.pretraining).features
                 self.net_2 = models.vgg16(pretrained=self.pretraining).classifier
-            
-            self.net_2._modules['6'] = nn.Linear(4096,40)
+
+            for i, m in self.net_1._modules.items():
+                if m.__class__.__name__ == 'MaxPool2d':
+                    m.padding = 1
+            self.net_2._modules['6'] = nn.Linear(4096, 40)
 
     def forward(self, x):
         if self.use_resnet:
             return self.net(x)
         else:
             y = self.net_1(x)
-            return self.net_2(y.view(y.shape[0],-1))
+            y = y.view(y.shape[0], -1)
+
+            if self.net_2._modules['0'].in_features != y.shape[1]:
+                self.net_2._modules['0'] = nn.Linear(y.shape[1], 4096).to('cuda')
+                print('Dynamically update the classifier input size! This should only happen once per cam setting')
+            return self.net_2(y)
 
 
 class MVCNN(Model):
@@ -81,8 +89,8 @@ class MVCNN(Model):
 
         self.nclasses = nclasses
         self.num_views = num_views
-        self.mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
-        self.std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
+        # self.mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
+        # self.std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
 
         self.use_resnet = cnn_name.startswith('resnet')
 
