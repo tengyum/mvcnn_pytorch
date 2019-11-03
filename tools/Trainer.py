@@ -84,7 +84,6 @@ class ModelNetTrainer(object):
 
                 loss.backward()
                 self.optimizer.step()
-
                 log_str = 'epoch %d, step %d: train_loss %.3f; train_acc %.3f' % (epoch + 1, i + 1, loss, acc)
                 if (i + 1) % 1 == 0:
                     print(log_str)
@@ -117,8 +116,8 @@ class ModelNetTrainer(object):
         self.writer.close()
 
     def update_validation_accuracy(self, epoch):
-        all_correct_points = 0
-        all_points = 0
+        all_correct_points = torch.tensor(0).to('cuda')
+        all_points = torch.tensor(0).to('cuda')
 
         # in_data = None
         # out_data = None
@@ -164,6 +163,7 @@ class ModelNetTrainer(object):
         val_mean_class_acc = np.mean((samples_class - wrong_class) / samples_class)
         acc = all_correct_points.float() / all_points
         val_overall_acc = acc.cpu().data.numpy()
+        print(len(self.val_loader))
         loss = all_loss / len(self.val_loader)
 
         print('val mean class acc. : ', val_mean_class_acc)

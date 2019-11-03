@@ -34,8 +34,10 @@ if __name__ == '__main__':
         'cnn_name': 'vgg11',
         'num_views': 16,
         'cam_settings': '8_2_50_50_0.01',
-        'train_path': '/media/tengyu/DataU/Data/ModelNet/ModelNet40_c40000/*/train',
-        'val_path': '/media/tengyu/DataU/Data/ModelNet/ModelNet40_c40000/*/test',
+        # 'train_path': '/media/tengyu/DataU/Data/ModelNet/ModelNet40_c40000/*/train',
+        # 'val_path': '/media/tengyu/DataU/Data/ModelNet/ModelNet40_c40000/*/test',
+        'train_path': '/home/mat/Data/ModelNet40/ModelNet40_c40000/*/train',
+        'val_path': '/home/mat/Data/ModelNet40/ModelNet40_c40000/*/test',
         'train': True
     }
 
@@ -57,9 +59,13 @@ if __name__ == '__main__':
 
     exp_settings = list(itertools.product(*[cam_settings, pretraineds]))
 
-    for _ in range(1):
+    for exp_i in range(5):
         for cam, pre in exp_settings:
-            print(cam)
+            print(cam, pre)
+            # if exp_i == 0 and cam in ['4_1_100_100_0.01', '8_2_50_50_0.01',
+            #                           '16_4_25_25_0.01', '20_5_20_20_0.01', '40_10_10_10_0.01']:
+            #     print('Already run, skipped.')
+            #     continue
             hyper_p['cam_settings'] = cam
             hyper_p['pretraining'] = pre
             hyper_p['num_views'] = int(np.prod([int(i) for i in cam.split('_')[:2]]))
@@ -107,7 +113,8 @@ if __name__ == '__main__':
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=hyper_p['batchSize'], shuffle=False,
                                                        num_workers=0)  # shuffle needs to be false! it's done within the trainer
 
-            val_dataset = MultiviewImgDataset(hyper_p['val_path'], scale_aug=False, rot_aug=False, num_views=hyper_p['num_views'], cam_settings=hyper_p['cam_settings'])
+            val_dataset = MultiviewImgDataset(hyper_p['val_path'], scale_aug=False, rot_aug=False,
+                                              num_views=hyper_p['num_views'], cam_settings=hyper_p['cam_settings'])
             val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=hyper_p['batchSize'], shuffle=False, num_workers=0)
             print('num_train_files: ' + str(len(train_dataset.filepaths)))
             print('num_val_files: ' + str(len(val_dataset.filepaths)))
@@ -115,7 +122,7 @@ if __name__ == '__main__':
                                       num_views=hyper_p['num_views'])
             trainer.train(30)
 
-            rst_dir = 'mvcnn_norm_randview.csv'
+            rst_dir = 'mvcnn_norm_allview.csv'
             with open(rst_dir, 'a+') as f:
                 line = '%s\t%s\t%s\t%f\n' % (hyper_p['cam_settings'],
                                              'mvcnn_vgg11',

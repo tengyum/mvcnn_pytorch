@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import torch
 import torchvision as vision
 
-import data_statics
+from tools import data_statics
 from torchvision import transforms, datasets
 from inlearn.utils import data_utils
 
@@ -50,13 +50,13 @@ class MultiviewImgDataset(torch.utils.data.Dataset):
                 self.filepaths.extend(all_files[:min(num_models, len(all_files))])
 
         # self.filepaths = [p for p in self.filepaths for _ in range(self.num_views)]
-        if shuffle == True:
-            # permute
-            rand_idx = np.random.permutation(int(len(self.filepaths) / self.num_views))
-            filepaths_new = []
-            for i in range(len(rand_idx)):
-                filepaths_new.extend(self.filepaths[rand_idx[i] * self.num_views:(rand_idx[i] + 1) * self.num_views])
-            self.filepaths = filepaths_new
+        # if shuffle == True:
+        #     # permute
+        #     rand_idx = np.random.permutation(int(len(self.filepaths) / self.num_views))
+        #     filepaths_new = []
+        #     for i in range(len(rand_idx)):
+        #         filepaths_new.extend(self.filepaths[rand_idx[i] * self.num_views:(rand_idx[i] + 1) * self.num_views])
+        #     self.filepaths = filepaths_new
 
         c = np.prod([int(i) for i in self.cam_settings.split('_')[:4]])
         self.cam_settings_norm = data_statics.cam_settings_norms['c%s' % c]
@@ -141,7 +141,7 @@ class SingleImgDataset(torch.utils.data.Dataset):
         c = np.prod([int(i) for i in self.cam_settings.split('_')[:4]])
         self.cam_settings_norm = data_statics.cam_settings_norms['c%s' % c]
 
-        # self.filepaths = [p for p in self.filepaths for _ in range(self.num_views)]
+        self.filepaths = [p for p in self.filepaths for _ in range(self.num_views)]
         self.transform = transforms.Compose([
             # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -155,12 +155,12 @@ class SingleImgDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         path = self.filepaths[idx]
-        # view_i = idx % self.num_views  # Since I repeat the same file num_views times,
+        view_i = idx % self.num_views  # Since I repeat the same file num_views times,
         # in Tengyu's representation, all views are stored in one pickle file
 
         # Since for large number of views, e.g., 400x100=40000 views, the repeating method is so slow cause each object
         # will have 40000 pictures for different views. Use random view now to leverage this time cost.
-        view_i = random.randint(0, self.num_views - 1)
+        # view_i = random.randint(0, self.num_views - 1)
         # Orginal class_name position
         # class_name = path.split('/')[-3]
 
@@ -182,6 +182,7 @@ class SingleImgDataset(torch.utils.data.Dataset):
             im = self.transform(im)
             # plt.imshow(im[view_i], vmin=0, vmax=1, cmap='gray')
             # plt.show()
+
 
         im = torch.reshape(im, (3, self.view_settings[1], self.pixel_row, self.view_settings[0], self.pixel_col)) \
             .permute((1, 3, 0, 2, 4)).reshape((-1, 3, self.pixel_row, self.pixel_col))

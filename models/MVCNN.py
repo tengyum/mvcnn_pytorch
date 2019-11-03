@@ -61,6 +61,8 @@ class SVCNN(Model):
             for i, m in self.net_1._modules.items():
                 if m.__class__.__name__ == 'MaxPool2d':
                     m.padding = 1
+            self.net_2._modules['0'] = nn.Linear(12800, 4096).to('cuda')
+
             self.net_2._modules['6'] = nn.Linear(4096, 40)
 
     def forward(self, x):
