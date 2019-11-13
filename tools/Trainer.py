@@ -104,8 +104,9 @@ class ModelNetTrainer(object):
         # out_data = None
         # target = None
 
-        wrong_class = np.zeros(40)
-        samples_class = np.zeros(40)
+        # hardcoding here, 55 for SHREC17, 40 for ModelNet40
+        wrong_class = np.zeros(55)
+        samples_class = np.zeros(55)
         all_loss = 0
 
         self.model.eval()

@@ -11,7 +11,7 @@ from models.MVCNN import MVCNN, SVCNN
 
 from inlearn.utils import data_utils
 from tools.ImgDataset import pickle_train_test_loader
-from hyper_p_pk import ModelNet40_Hyper
+from hyper_p_pk import ModelNet40_Hyper, SHREC17_Hyper
 
 
 def create_folder(log_dir):
@@ -43,7 +43,8 @@ def run_rxp(hyper_p, exp_settings, Data_Hyper, run_times):
             print('num_train_files: ' + str(len(train_dataset.pickle_dirs)))
             print('num_val_files: ' + str(len(val_dataset.pickle_dirs)))
 
-            cnet = SVCNN(hyper_p['name'], nclasses=40, pretraining=pretraining, cnn_name=hyper_p['cnn_name'])
+            cnet = SVCNN(hyper_p['name'], nclasses=len(data_hyper.all_cate),
+                         pretraining=pretraining, cnn_name=hyper_p['cnn_name'])
 
             optimizer = optim.Adam(cnet.parameters(), lr=hyper_p['lr'], weight_decay=hyper_p['weight_decay'])
 
@@ -77,7 +78,8 @@ def run_rxp(hyper_p, exp_settings, Data_Hyper, run_times):
             print('num_train_files: ' + str(len(train_dataset.pickle_dirs)))
             print('num_val_files: ' + str(len(val_dataset.pickle_dirs)))
 
-            cnet_2 = MVCNN(hyper_p['name'], cnet, nclasses=40, cnn_name=hyper_p['cnn_name'], num_views=train_dataset.view_num)
+            cnet_2 = MVCNN(hyper_p['name'], cnet, nclasses=len(data_hyper.all_cate),
+                           cnn_name=hyper_p['cnn_name'], num_views=train_dataset.view_num)
             del cnet
 
             optimizer = optim.Adam(cnet_2.parameters(), lr=hyper_p['lr'], weight_decay=hyper_p['weight_decay'], betas=(0.9, 0.999))
@@ -108,12 +110,16 @@ def main():
         'train': True
     }
 
+    # c2500
+    cam_settings = ['4_1_25_25_0.04', '20_5_5_5_0.04']
+                    # '100_25_1_1_0.02']
+
     # c10000
-    # cam_settings = ['4_1_50_50_0.02', '8_2_25_25_0.02', '20_5_10_10_0.02',
+    # cam_settings = ['4_1_50_50_0.02', '8_2_25_25_0.02', '20_5_10_10_0.02']
     #                 '40_10_5_5_0.02', '100_25_2_2_0.02', '200_50_1_1_0.02']
 
     # c22500
-    cam_settings = ['4_1_75_75_0.01', '12_3_25_25_0.01', '20_5_15_15_0.01']
+    # cam_settings = ['4_1_75_75_0.01', '12_3_25_25_0.01', '20_5_15_15_0.01']
                     # '60_15_5_5_0.01', '100_25_3_3_0.01', '300_75_1_1_0.01']
 
     # c40000
@@ -121,8 +127,8 @@ def main():
                     # '40_10_10_10_0.01', '80_20_5_5_0.01', '100_25_4_4_0.01', '200_50_2_2_0.01', '400_100_1_1_0.01']
     pretraineds = [True, False]
     exp_settings = list(itertools.product(*[cam_settings, pretraineds]))
-    Data_Hyper = ModelNet40_Hyper
-    run_times = 5
+    Data_Hyper = SHREC17_Hyper
+    run_times = 1
 
     run_rxp(hyper_p, exp_settings, Data_Hyper, run_times)
 
